@@ -1,4 +1,4 @@
-package analyse.document;
+package buaa.sei.xyb.analyse.document;
 /**
  * @author Xu Yebing
  * Constant 包含analyse.document包中所有类所使用的常量定义

@@ -1,4 +1,4 @@
-package analyse.document.pipeFilter;
+package buaa.sei.xyb.analyse.document.pipeFilter;
 
 import java.io.BufferedReader;
 import java.io.File;

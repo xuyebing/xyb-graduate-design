@@ -1,4 +1,4 @@
-package analyse.document;
+package buaa.sei.xyb.analyse.document;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -9,7 +9,8 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Vector;
 
-import analyse.document.pipeFilter.StopFilter;
+import buaa.sei.xyb.analyse.document.pipeFilter.StopFilter;
+
 
 /**
  * 

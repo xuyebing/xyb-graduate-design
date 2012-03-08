@@ -1,4 +1,4 @@
-package analyse.document;
+package buaa.sei.xyb.analyse.document;
 
 import java.io.BufferedWriter;
 import java.io.File;

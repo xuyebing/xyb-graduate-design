@@ -1,4 +1,4 @@
-package analyse.document;
+package buaa.sei.xyb.analyse.document;
 
 import java.util.ArrayList;
 import java.util.Collections;
