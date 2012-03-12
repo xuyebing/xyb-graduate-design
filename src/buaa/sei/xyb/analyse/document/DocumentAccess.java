@@ -6,10 +6,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
 import buaa.sei.xyb.analyse.document.pipeFilter.StopFilter;
+import buaa.sei.xyb.common.DocumentDescriptor;
+import buaa.sei.xyb.common.GlobalVariant;
 
 
 /**
@@ -45,15 +48,16 @@ public class DocumentAccess {
 		StopFilter stopFilter = new StopFilter();
 		stopFilter.initStopWordSet(stopWordFilePath); // 初始化停用词集合
 		// 创建保存分词结果的文件夹
-		String filteredFolderPath = resultPath + Constant.FILE_SEPARATOR + Constant.FILTERED_DIR;
+		String filteredFolderPath = resultPath + Constant.FILE_SEPARATOR + Constant.FILTERED_DIR + Constant.FILE_SEPARATOR + Constant.globalCategoryID;
 		File filteredFolder = new File(filteredFolderPath);
 		if (!filteredFolder.exists() || !filteredFolder.isDirectory()) {
-			if (!filteredFolder.mkdir()) {
+			if (!filteredFolder.mkdirs()) {
 				System.out.println("=====>>Error: filteredFolder 没有创建成功 <<=====");
 				return false; // 目录没有创建成功，则返回
 			}
 		}
-		String docWordsFolderPath = resultPath + Constant.FILE_SEPARATOR + Constant.SEGMENT_DIR;
+		// 分析je文件夹下第globalCategoryID类分词文件集合
+		String docWordsFolderPath = resultPath + Constant.FILE_SEPARATOR + Constant.SEGMENT_DIR + Constant.FILE_SEPARATOR + Constant.globalCategoryID;
 		File docWordsFolder = new File(docWordsFolderPath);
 		if (docWordsFolder.exists() && docWordsFolder.isDirectory()) {
 			// 遍历文件夹，获得其下的所有txt文件（不考虑子文件夹和其他类型的文件）
@@ -75,31 +79,68 @@ public class DocumentAccess {
 					bw.write(filteredContent);
 					bw.flush();
 					bw.close();
+					// 产生文档段对应的文档描述符
+					createDocumentDescriptor(Constant.globalCategoryID, docWordsFile.getName(),
+							                 filteredFilePath);
 				}
 			}
 		}
 		return true;
 	}
+	/**
+	 * 产生每个文档段的文档描述符
+	 */
+	private static void createDocumentDescriptor (int categoryID, String name, String path) {
+		DocumentDescriptor dd = new DocumentDescriptor(categoryID, name, path);
+		if (GlobalVariant.docDescriptorList == null)
+			GlobalVariant.docDescriptorList = new ArrayList<DocumentDescriptor>();
+		GlobalVariant.docDescriptorList.add(dd);
+	}
+	/**
+	 * docProcess 递归地分析每个软件文档文件夹下的所有文件
+	 * @param docPath
+	 */
+	public static void docProcess(String docPath) {
+		File docFile = new File(docPath);
+		if (!docFile.exists())
+			return;
+		if (docFile.isDirectory()) {
+			// 不分析名称为${WordDocParser.tempDir}的文件夹
+			if (docFile.getName().contains(WordDocParser.tempDir))
+				return;
+			else {
+				File[] files  = docFile.listFiles();
+				for (File file : files) {
+					docProcess(file.getAbsolutePath());
+				}
+			}
+		} else {
+			WordDocParser wdp = new WordDocParser(); 
+			try {
+				// 1. 文档段分割，同时对每个文档段进行分词操作 [本阶段的输出包括：1.划分好的文档段集合。 2.每个文档段对应的词语集合]
+				// 目前第一阶段已完成
+				Constant.globalCategoryID ++; // 每分析一个软件文档，全局类别索引加1.
+				
+				wdp.analyze(docPath, resultPath);
+				
+				// 2. 对分词结果进行不同步骤的处理（包括：去掉停用词、根据数据词典或词典将文档中的英文词翻译成中文词等）
+				// 考虑使用类似lucene 标准分析器的“管道过滤器”结构，使得分析过程清晰、明确
+				// TODO 文本处理过程
+				boolean stopFilterFlag = DocumentAccess.executeStopFilter();
+				if (stopFilterFlag)
+					System.out.println("=====>> 提取结束! <<=====");
+				// TODO 还没考虑处理文档中的英文单词，这需要考虑根据字典（或数据词典）进行翻译 
+				
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
 	
 	public static void main(String args[]) {
-		WordDocParser wdp = new WordDocParser();
-		try {
-			// 1. 文档段分割，同时对每个文档段进行分词操作 [本阶段的输出包括：1.划分好的文档段集合。 2.每个文档段对应的词语集合]
-			// 目前第一阶段已完成
-			wdp.analyze("D:\\硕士开题\\5.31终版v1.0\\测试用例集\\0203\\doc\\需求\\用户需求说明书.doc", resultPath);
-			
-			// 2. 对分词结果进行不同步骤的处理（包括：去掉停用词、根据数据词典或词典将文档中的英文词翻译成中文词等）
-			// 考虑使用类似lucene 标准分析器的“管道过滤器”结构，使得分析过程清晰、明确
-			// TODO 文本处理过程
-			boolean stopFilterFlag = DocumentAccess.executeStopFilter();
-			if (stopFilterFlag)
-				System.out.println("=====>> 提取结束! <<=====");
-			// TODO 还没考虑处理文档中的英文单词，这需要考虑根据字典（或数据词典）进行翻译 
-			
-			
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		String folderSet = "D:\\硕士开题\\5.31终版v1.0\\测试用例集\\0203\\doc"; // 包含所有待分析软件文档的文件夹绝对路径
+		DocumentAccess.docProcess(folderSet);
 	}
 }

@@ -11,7 +11,9 @@ public class NumberFilter {
    * @return
    */
   public static boolean isNumWithPunctuate(String word) {
-    String regex = "[0-9.\\-_]+";
-    return Pattern.matches(regex, word);
+//    String regex = "[0-9.\\-_]+";
+	  // \\u4E00-\\u9FA5 表示中文
+	  String regex = "[^A-Za-z\\u4E00-\\u9FA5]+"; // 表示除英文和中文以外的全部字符
+	  return Pattern.matches(regex, word);
   }
 }

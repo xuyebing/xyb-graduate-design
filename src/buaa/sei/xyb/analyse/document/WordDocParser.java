@@ -14,6 +14,7 @@ import com.jacob.com.Variant;
 
 public class WordDocParser {
 
+	public static String tempDir = "tempDir";
 	private static String documentDir = ""; // 包含所有待分析的文档的目录
 	public static String copyName; // 保存读入文件复制后的绝对路径，
 								   // 从而保证分离表格的处理不影响原文件。
@@ -31,11 +32,11 @@ public class WordDocParser {
 	 * @throws IOException 
 	 */
 	private void splitToSmallFiles(String docFile, String outPutPath) throws IOException {
-		File outDir = new File(outPutPath);
+		File outDir = new File(outPutPath + Constant.FILE_SEPARATOR + Constant.globalCategoryID );
 		if (!outDir.exists()) {
 			outDir.mkdirs();
 		}
-		File segOutDir = new File(outPutPath + Constant.FILE_SEPARATOR + Constant.SEGMENT_DIR);
+		File segOutDir = new File(outPutPath + Constant.FILE_SEPARATOR + Constant.SEGMENT_DIR + Constant.FILE_SEPARATOR + Constant.globalCategoryID);
 		if (!segOutDir.exists()) {
 			segOutDir.mkdirs();
 		}
@@ -43,6 +44,7 @@ public class WordDocParser {
 		File doc = new File(docFile);
 		
 		String docName = doc.getName();
+		System.out.println("^^^^^^ docName = " + docName + " ^^^^^");
 		docName = docName.substring(0, docName.lastIndexOf("."));
 		
 		ArrayList<String> parts = splitFile(docFile);
@@ -51,7 +53,7 @@ public class WordDocParser {
 		int offset = 0;
 		BufferedWriter writer = null;
 		while(subPartsIt.hasNext()) {
-			String outPutName = outPutPath + Constant.FILE_SEPARATOR + docName + "_" + filePointer + ".txt"; 
+			String outPutName = outPutPath + Constant.FILE_SEPARATOR + Constant.globalCategoryID + Constant.FILE_SEPARATOR + docName + "_" + filePointer + ".txt"; 
 			writer = new BufferedWriter(new FileWriter(outPutName));
 			String str=subPartsIt.next();
 			writer.write(str);
@@ -62,7 +64,7 @@ public class WordDocParser {
 			String words = wordSegmentation.segmentWord(str);
 			words = words.replaceAll("\\s+", " ");
 			// ictclasOutPutName 保存分词结果的文件的绝对路径
-			String ictclasOutPutName = outPutPath + Constant.FILE_SEPARATOR + Constant.SEGMENT_DIR + Constant.FILE_SEPARATOR + docName + "_" + filePointer + ".txt";
+			String ictclasOutPutName = outPutPath + Constant.FILE_SEPARATOR + Constant.SEGMENT_DIR + Constant.FILE_SEPARATOR + Constant.globalCategoryID + Constant.FILE_SEPARATOR + docName + "_" + filePointer + ".txt";
 			writer = new BufferedWriter(new FileWriter(ictclasOutPutName));
 			writer.write(words);
 			writer.close();
@@ -128,7 +130,7 @@ public class WordDocParser {
 		  index = subTemp.lastIndexOf('\\');
 		  if (index > 0)
 			  subTemp = subTemp.substring(0,index);
-		  subTemp = subTemp + "\\tempDoc";
+		  subTemp = subTemp + Constant.FILE_SEPARATOR + tempDir;
 		  File tempFile = new File(subTemp);
 		  if(!tempFile.exists())
 			  tempFile.mkdirs();
